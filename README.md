@@ -11,6 +11,8 @@
 ## Need
 
 python3
+pip install requests
+pip install pysocks
 
 ## HowToUse
 
