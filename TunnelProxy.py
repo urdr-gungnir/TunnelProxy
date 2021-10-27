@@ -48,13 +48,18 @@ class MyThread(Thread):
 
 def CheckEffectiveness(proxy):
     proxies = {'http': "socks5://{}/".format(proxy), "https": "socks5://{}/".format(proxy)}
-
+    header = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36',
+    }
 
     res = True
     try:
         request = requests.get(url='https://www.baidu.com', headers=header, proxies=proxies, timeout=10)
         if request.status_code == 200:
             res = False
+    except ValueError:
+        print("缺少pysocks库，请pip安装")
+        sys.exit()
     except:
         res = True
     return res
@@ -68,7 +73,6 @@ def ReIp(res):
 def ChooseUrl(i):
     base_query = 'protocol=="socks5" && "Version:5 Method:No Authentication(0x00)"'
 
-    #获取当前日期，增加代理可用性
 
     extra_query = ' && country="CN" && after="{}" && before="{}"'.format(after, before)
     query = base_query + extra_query
@@ -208,6 +212,8 @@ if __name__ == "__main__":
 
     after = datetime.date.today() - datetime.timedelta(days=1)
     before = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    if not options['cookie']:
+        sys.exit("cookie是必要的")
     if options['after']:
         after = options['after']
 
