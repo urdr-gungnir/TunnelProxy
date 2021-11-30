@@ -54,7 +54,7 @@ def CheckEffectiveness(proxy, web):
 
     res = True
     try:
-        request = requests.get(url='https://www.{}.com'.format(web), headers=header, proxies=proxies, timeout=10)
+        request = requests.get(url='https://www.{}.com'.format(web), headers=header, proxies=proxies, timeout=3)
         if request.status_code == 200:
             res = False
     except ValueError:
@@ -128,36 +128,35 @@ def GetPxByFofa():
 
     CheckAllEffectiveness()
 
+def Check(target, ip_port):
+    if re.search('[a-zA-Z]]', ip_port):
+        ip_ports.remove(ip_port)
+        return
+    if CheckEffectiveness(ip_port, target):
+        ip_ports.remove(ip_port)
+        print('[*]{}不行'.format(ip_port))
+        return
+    print('[*]{}行'.format(ip_port))
 def CheckAllEffectiveness():
     global ip_ports
     # 检查有效性
     print("[*]检查代理可用性")
+    threads = []
     if foreign:
         for i in range(len(ip_ports) - 1, -1, -1):
             ip_port = ip_ports[i]
-            if re.search('[a-zA-Z]]', ip_port):
-                ip_ports.remove(ip_port)
-                continue
-            if CheckEffectiveness(ip_port, "google"):
-                ip_ports.remove(ip_port)
-                print('[*]{}不行'.format(ip_port))
-                continue
-            print('[*]{}行'.format(ip_port))
+            t = threading.Thread(target=Check, args=("google", ip_port))
+            threads.append(t)
+            t.start()
     else:
         for i in range(len(ip_ports) - 1, -1, -1):
             ip_port = ip_ports[i]
-            if re.search('[a-zA-Z]]', ip_port):
-                ip_ports.remove(ip_port)
-                continue
-            if CheckEffectiveness(ip_port, "baidu"):
-                ip_ports.remove(ip_port)
-                print('[*]{}不行'.format(ip_port))
-                continue
-            print('[*]{}行'.format(ip_port))
-    # with open("proxies.txt", 'w') as f:
-    #     for ip_port in ip_ports:
-    #         f.write(ip_port+'\n')
+            t = threading.Thread(target=Check, args=("baidu", ip_port))
+            threads.append(t)
+            t.start()
 
+    for t in threads:
+        t.join()
     print("[*]fofa爬取，一共找到{}个有效代理".format(len(ip_ports)))
     if len(ip_ports) == 0:
         print("请重新圈定爬取代理的范围，此次没有爬取到可用代理。")
