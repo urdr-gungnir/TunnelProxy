@@ -19,13 +19,13 @@ pip install -r requirements.txt
 
 ## ParameterList
 
-![Snipaste_2021-11-30_15-57-07](img/Snipaste_2021-11-30_15-57-07.png)
+![image](https://github.com/urdr-gungnir/TunnelProxy/blob/main/img/Snipaste_2021-11-30_15-57-07.png)
 
 ## HowToUse
 
 在运行之前，建议先去fofa登录，拿到cookie，因为fofa登陆过后，能爬取很多页，能得到更多白嫖的代理。（在登陆的时候选择保持登录，可以使cookie长时间有效，不用来回换。
 
-![Snipaste_2021-10-26_22-36-39](D:/E-drive-24078/资源/gungnir工具包/流量转发/Tunne/img/Snipaste_2021-10-26_22-36-39.png)
+![image](https://github.com/urdr-gungnir/TunnelProxy/blob/main/img/Snipaste_2021-10-26_22-36-39.png)
 
 复制之后，可以选择把cookie放置在cookie.txt中, TunnelProxy会自动读取，之后就不用在命令行中使用 -c参数了。
 
@@ -35,7 +35,7 @@ pip install -r requirements.txt
 python TunnelProxy.py -c You-Cookie
 ```
 
-![Snipaste_2021-10-26_22-24-04](D:/E-drive-24078/资源/gungnir工具包/流量转发/Tunne/img/Snipaste_2021-10-26_22-24-04.png)
+![image](https://github.com/urdr-gungnir/TunnelProxy/blob/main/img/Snipaste_2021-10-26_22-24-04.png)
 
 默认爬取的代理时间为前一天到现在的时间的。
 
@@ -53,7 +53,7 @@ python TunnelProxy.py -a "2021-10-25 10:00:00" -b "2021-10-26" -c You-Cookie
 
 等到程序监听9870端口，就可以配合浏览器插件SwitchyOmega，让他把浏览器流量都转发给本地9870端口，这时候，我们就可以愉快走着免费代理
 
-![Snipaste_2021-10-26_22-50-04](D:/E-drive-24078/资源/gungnir工具包/流量转发/Tunne/img/Snipaste_2021-10-26_22-50-04.png)
+![image](https://github.com/urdr-gungnir/TunnelProxy/blob/main/img/Snipaste_2021-10-26_22-50-04.png)
 
 
 
