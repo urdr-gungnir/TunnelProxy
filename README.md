@@ -70,7 +70,7 @@ python .\TunnelProxy.py -f
 2. 不需要本地监听，拿到国外代理
 
 ```
-python .\TunnelProxy.py -f --no
+python .\TunnelProxy.py -f --no --page 2
 ```
 
 3. 需要本地监听，访问国内网站
