@@ -24,14 +24,14 @@ class MyThread(Thread):
             pxip, pxport = GetOneEffectIpPort()
             AConnectFromClient(conn, addr, pxip, pxport)
         except ConnectionRefusedError:
-            print("ConnectionError")
+            Eprint("ConnectionError")
             flag += 1
             if flag > 3:
                 ip_ports.remove(pxip+':'+pxport)
                 flag = 0
 
         except TimeoutError:
-            print("连接超时")
+            Eprint("连接超时")
             flag += 1
             if flag > 3:
                 ip_ports.remove(pxip+':'+pxport)
@@ -41,10 +41,14 @@ class MyThread(Thread):
             self.exitcode = 1
             sys.exit()
         except Exception as e:
-            print('other Exception')
-            print("异常信息:", end="")
+            Eprint('other Exception')
+            Eprint("异常信息:", end="")
             self.exitcode = 1
-            print(e)
+            Eprint(e)
+
+def Eprint(text):
+    print("\033[31m{}\033[0m".format(text))
+
 
 def CheckEffectiveness(proxy, web):
     proxies = {'http': "socks5://{}/".format(proxy), "https": "socks5://{}/".format(proxy)}
@@ -58,7 +62,7 @@ def CheckEffectiveness(proxy, web):
         if request.status_code == 200:
             res = False
     except ValueError:
-        print("缺少pysocks库，请pip安装")
+        Eprint("缺少pysocks库，请pip安装")
         sys.exit()
     except:
         res = True
@@ -101,7 +105,7 @@ def GetPxByFofa():
             res = requests.get(url=fofa_url, headers=headernocookie, timeout=10)
             print("[*]第1页请求状态码:{}".format(res.status_code))
             if(res.status_code != 200):
-                print("[*]请检查网络哟")
+                Eprint("[*]请检查网络哟")
                 sys.exit()
             ReIp(res.text)
         else:
@@ -110,20 +114,19 @@ def GetPxByFofa():
                 fofa_url = ChooseUrl(i)
                 res = requests.get(url=fofa_url, headers=headerwithcookie, timeout=10)
                 if "返回上一页" in res.text:
+                    Eprint("[*]cookie失效，或者你自定义爬取页数超出了你被允许访问的页数,请自行检查.")
                     CheckAllEffectiveness()
-                    SaveIpPortToTxt()
-                    print("[*]cookie失效，或者你自定义爬取页数超出了你被允许访问的页数,请自行检查。")
-                    sys.exit()
+                    return
                 print("[*]第{}页请求状态码:{}".format(i, res.status_code))
                 if(res.status_code != 200):
-                    print("[*]请检查网络哟")
+                    Eprint("[*]请检查网络哟")
                     sys.exit()
                 ReIp(res.text)
                 time.sleep(5)
     except Exception as e:
-        print("[*]网络有问题，请检查")
-        print("[*]异常信息为:", end='')
-        print(e)
+        Eprint("[*]网络有问题，请检查")
+        Eprint("[*]异常信息为:", end='')
+        Eprint(e)
         sys.exit()
 
     CheckAllEffectiveness()
@@ -159,7 +162,7 @@ def CheckAllEffectiveness():
         t.join()
     print("[*]fofa爬取，一共找到{}个有效代理".format(len(ip_ports)))
     if len(ip_ports) == 0:
-        print("请重新圈定爬取代理的范围，此次没有爬取到可用代理。")
+        Eprint("请重新圈定爬取代理的范围，此次没有爬取到可用代理。")
         sys.exit()
 
 def GetOneEffectIpPort():
@@ -170,7 +173,7 @@ def GetOneEffectIpPort():
         port = int(ip_port.split(":")[1])
         return ip, port
     else:
-        print("代理池没代理了")
+        Eprint("代理池没代理了")
         sys.exit()
 
 def ProxyToClient(conn, toPx):
@@ -212,9 +215,9 @@ def ClientToProxy(conn, toPx):
                 toPx.close()
                 return
             j += 1
-            print("[*]错误信息：", end='')
-            print(e)
-            print("[*] close")
+            Eprint("[*]错误信息：", end='')
+            Eprint(e)
+            Eprint("[*] close")
         try:
             toPx.sendall(data)
         except:
@@ -234,7 +237,7 @@ def AConnectFromClient(conn, addr, pxip, pxport):
 
 def Banner():
     print(
-        '''
+        '''\033[32m
 
     ████████╗██╗   ██╗███╗   ██╗███╗   ██╗███████╗██╗     ██████╗ ██████╗  ██████╗ ██╗  ██╗██╗   ██╗
     ╚══██╔══╝██║   ██║████╗  ██║████╗  ██║██╔════╝██║     ██╔══██╗██╔══██╗██╔═══██╗╚██╗██╔╝╚██╗ ██╔╝
@@ -244,7 +247,7 @@ def Banner():
        ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚══════╝╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝
                                                                             author : Gungnir  
                                                                             email：502591592@qq.com
-        '''
+        \033[0m'''
     )
 
 def Parser():
@@ -358,6 +361,9 @@ def Run():
             if thread.exitcode != 0:
                 print("bye~")
                 sys.exit()
+        except KeyboardInterrupt:
+            Eprint("用户退出")
+            sys.exit()
         except:
             print("[*] connect from client error")
 
