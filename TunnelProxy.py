@@ -4,11 +4,13 @@ import datetime
 import argparse
 import threading
 import time
-
+import configparser
 import requests
 from threading import Thread
 import base64
 import re
+import os
+import json
 
 
 class MyThread(Thread):
@@ -42,7 +44,7 @@ class MyThread(Thread):
             sys.exit()
         except Exception as e:
             Eprint('other Exception')
-            Eprint("异常信息:", end="")
+            Eprint("异常信息:")
             self.exitcode = 1
             Eprint(e)
 
@@ -77,17 +79,9 @@ def SaveIpPortToTxt():
         f.write('\n'.join(ip_ports))
     # print(ip_ports)
     print("[*]爬取代理完成，已保存到{}".format(outpath))
-def GetCookieFromTxt():
-    with open("cookie.txt", "r") as f:
-        a = f.read()
-        if not a:
-            return "fake"
-        else:
-            return a
 
 def ChooseUrl(i):
     base_query = 'protocol=="socks5" && "Version:5 Method:No Authentication(0x00)"'
-
 
     extra_query = ' && country="CN" && after="{}" && before="{}"'.format(after, before)
     query = base_query + extra_query
@@ -95,9 +89,35 @@ def ChooseUrl(i):
     url = 'https://fofa.so/result?qbase64='+str(base64.b64encode(query.encode(encoding='utf-8')), 'utf-8')+'&page={}&page_size=10'.format(i)
     return url
 
-def GetPxByFofa():
-    # 最后再考虑获取国外代理需不需要把国家定位到国外。
-    # if where == "df":
+def ChooseApiUrl(i):
+    base_query = 'protocol=="socks5" && "Version:5 Method:No Authentication(0x00)"'
+
+    extra_query = ' && country="CN" && after="{}"'.format(after)
+    query = base_query + extra_query
+    print("[*]query:{}".format(query))
+    qbase64 = str(base64.b64encode(query.encode(encoding='utf-8')), 'utf-8')
+    url = r'https://fofa.so/api/v1/search/all?email={}&key={}&qbase64={}&size={}&page={}&fields=host,title,ip,domain,port,country,city,server,protocol'.format(
+        email, key, qbase64, 100, i)
+    return url
+
+def GetPxByFofaByApi():
+    global ip_ports
+    for i in range(1, page+1):
+        try:
+            fofa_url = ChooseApiUrl(i)
+            print(fofa_url)
+            ret = json.loads(requests.get(url=fofa_url, headers=headernocookie, timeout=10).text)
+            fofa_Results = ret['results']
+            for result in fofa_Results:
+                host, title, ip, domain, port, country, city, server, protocol = result
+                proxy = ip + ":" + port
+                ip_ports.append(proxy)
+        except Exception as e:
+            Eprint('[*][error] fofa 查询 {}'.format(e))
+            Eprint("[*]请检查fofa的api是否正确")
+            sys.exit()
+    CheckAllEffectiveness()
+def GetPxByFofaByCookie():
     try:
         if cookie == "fake":
             i = 1
@@ -125,7 +145,7 @@ def GetPxByFofa():
                 time.sleep(5)
     except Exception as e:
         Eprint("[*]网络有问题，请检查")
-        Eprint("[*]异常信息为:", end='')
+        Eprint("[*]异常信息为:")
         Eprint(e)
         sys.exit()
 
@@ -215,7 +235,7 @@ def ClientToProxy(conn, toPx):
                 toPx.close()
                 return
             j += 1
-            Eprint("[*]错误信息：", end='')
+            Eprint("[*]错误信息：")
             Eprint(e)
             Eprint("[*] close")
         try:
@@ -234,6 +254,19 @@ def AConnectFromClient(conn, addr, pxip, pxport):
     toPX.connect((pxip, pxport))
     threading.Thread(target=ClientToProxy, args=(conn, toPX)).start()
     threading.Thread(target=ProxyToClient, args=(conn, toPX)).start()
+
+def GetConfig(type):
+    config = configparser.RawConfigParser()
+    path= "config.conf"
+    if type=="api":
+        config.read(path, encoding="utf-8")
+        email = config.get("API", "email")
+        key = config.get("API", "fofa_key")
+        return email, key
+    elif type=="cookie":
+        config.read(path, encoding="utf-8")
+        cookie = config.get("Cookie", "cookie")
+        return cookie
 
 def Banner():
     print(
@@ -261,8 +294,9 @@ def Parser():
     parser.add_argument("-c", "--cookie", help='先去fofa登录，把cookie复制下来，不然只能请求一页代理，代理池会很小', dest="cookie")
     parser.add_argument("-f", "--foreign", help="爬取国外的代理",action="store_true" , dest="foreign")
     parser.add_argument("-o", "--out", help="有效代理输出文件位置（绝对路径，并附带自定义文件名）,默认当前文件夹下proxy.txt文件", type=str, dest="outpath")
-    parser.add_argument("--page", help="要爬取多少页（默认为5，爬取越多，速度越慢），当然，最终能爬多少取决于你是否为会员。", type=int, dest="page")
+    parser.add_argument("--page", help="要爬取多少页（默认为1，爬取越多，速度越慢），当然，最终能爬多少取决于你是否为会员。", type=int, dest="page")
     parser.add_argument("--no", help="不监听模式，只爬取代理，并将有效代理记录下来。", action="store_true", dest="nolisten")
+    parser.add_argument("-A", help="调用fofa api接口，比使用cookie得到的ip多得多，但需要你有会员。", action="store_true", dest="IsApi")
     parser.add_argument("-p", "--port", help="监听端口", type=int,dest="port")
     args = parser.parse_args()
     options = vars(args)
@@ -272,7 +306,7 @@ def _init():
     # mode为0，爬取代理并监听
     # mode为1，爬取代理不监听
     # where为是爬取国内或者国外的代理,参数为f，d，df
-    global nodatatime, headerwithcookie, headernocookie, after, before, cookie, mode, port, host, foreign, where, ip_ports, page, outpath
+    global IsApi, email, key, nodatatime, headerwithcookie, headernocookie, after, before, cookie, mode, port, host, foreign, where, ip_ports, page, outpath
 
     # 初始化
     foreign = False
@@ -281,7 +315,7 @@ def _init():
     port = 9870
     host = "127.0.0.1"
     # where = "df"
-    page = 5
+    page = 1
     ip_ports = []
     outpath = "proxy.txt"
 
@@ -314,21 +348,22 @@ def _init():
     if options['outpath']:
         outpath = options['outpath']
 
-    if not options['cookie']:
-        cookie = GetCookieFromTxt()
-        if cookie == "fake":
-            return
-        else:
-            headerwithcookie = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36',
-                'Cookie': cookie
-            }
-            return
-    cookie = options['cookie']
-    headerwithcookie = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36',
-        'Cookie': cookie
-    }
+    IsApi = options["IsApi"]
+    if options["IsApi"]:
+        email, key = GetConfig("api")
+    elif options['cookie']:
+        cookie = options['cookie']
+        headerwithcookie = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36',
+            'Cookie': cookie
+        }
+        return
+    else:
+        cookie = GetConfig("cookie")
+        headerwithcookie = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36',
+            'Cookie': cookie
+        }
 def Run():
     # global host, port
     if foreign:
@@ -337,7 +372,10 @@ def Run():
     else:
         print("[*]寻找可用代理")
 
-    GetPxByFofa()
+    if IsApi:
+        GetPxByFofaByApi()
+    else:
+        GetPxByFofaByCookie()
     SaveIpPortToTxt()
 
 

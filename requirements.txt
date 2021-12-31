@@ -1,5 +1,6 @@
 certifi==2021.10.8
 charset-normalizer==2.0.8
+configparser==5.2.0
 idna==3.3
 PySocks==1.7.1
 requests==2.26.0

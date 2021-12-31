@@ -23,7 +23,17 @@ pip install -r requirements.txt
 
 ## HowToUse
 
-在运行之前，建议先去fofa登录，拿到cookie，因为fofa登陆过后，能爬取很多页，能得到更多白嫖的代理。（在登陆的时候选择保持登录，可以使cookie长时间有效，不用来回换。
+~~在运行之前，建议先去fofa登录，拿到cookie，因为fofa登陆过后，能爬取很多页，能得到更多白嫖的代理。（在登陆的时候选择保持登录，可以使cookie长时间有效，不用来回换。~~
+
+更新了可以使用api，把自己的key和email填在config.conf文件中，使用
+
+```
+python TunnelProxy.py -A
+```
+
+
+
+下面是拿cookie方法，适合我们这种穷人。
 
 ![image](https://github.com/urdr-gungnir/TunnelProxy/blob/main/img/Snipaste_2021-10-26_22-36-39.png)
 
