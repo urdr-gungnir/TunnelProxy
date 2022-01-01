@@ -19,7 +19,8 @@ pip install -r requirements.txt
 
 ## ParameterList
 
-![image](https://github.com/urdr-gungnir/TunnelProxy/blob/main/img/Snipaste_2021-11-30_15-57-07.png)
+![Snipaste_2021-12-31_18-23-51](https://user-images.githubusercontent.com/73213935/147818127-2aeedc21-184b-458e-a2b0-77f8826e2fc7.png)
+
 
 ## HowToUse
 
@@ -32,6 +33,7 @@ python TunnelProxy.py -A
 ```
 
 
+默认还是cookie，需要用-A选项才是用api。
 
 下面是拿cookie方法，适合我们这种穷人。
 
