@@ -86,7 +86,7 @@ def ChooseUrl(i):
     extra_query = ' && country="CN" && after="{}" && before="{}"'.format(after, before)
     query = base_query + extra_query
     print("[*]query:{}".format(query))
-    url = 'https://fofa.so/result?qbase64='+str(base64.b64encode(query.encode(encoding='utf-8')), 'utf-8')+'&page={}&page_size=10'.format(i)
+    url = 'https://fofa.info/result?qbase64='+str(base64.b64encode(query.encode(encoding='utf-8')), 'utf-8')+'&page={}&page_size=10'.format(i)
     return url
 
 def ChooseApiUrl(i):
@@ -96,7 +96,7 @@ def ChooseApiUrl(i):
     query = base_query + extra_query
     print("[*]query:{}".format(query))
     qbase64 = str(base64.b64encode(query.encode(encoding='utf-8')), 'utf-8')
-    url = r'https://fofa.so/api/v1/search/all?email={}&key={}&qbase64={}&size={}&page={}&fields=host,title,ip,domain,port,country,city,server,protocol'.format(
+    url = r'https://fofa.info/api/v1/search/all?email={}&key={}&qbase64={}&size={}&page={}&fields=host,title,ip,domain,port,country,city,server,protocol'.format(
         email, key, qbase64, 100, i)
     return url
 
