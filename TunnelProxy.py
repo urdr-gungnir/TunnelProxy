@@ -11,6 +11,7 @@ import base64
 import re
 import os
 import json
+import random
 
 
 class MyThread(Thread):
@@ -188,13 +189,15 @@ def CheckAllEffectiveness():
 def GetOneEffectIpPort():
     global ip_ports
     if ip_ports:
-        ip_port = ip_ports[0]
+        ranomIP=random.randint(0,len(ip_ports)-1)
+        ip_port = ip_ports[ranomIP]
         ip = str(ip_port.split(":")[0])
         port = int(ip_port.split(":")[1])
         return ip, port
     else:
         Eprint("代理池没代理了")
         sys.exit()
+
 
 def ProxyToClient(conn, toPx):
     j = 0
@@ -278,7 +281,7 @@ def Banner():
        ██║   ██║   ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██║     ██╔═══╝ ██╔══██╗██║   ██║ ██╔██╗   ╚██╔╝
        ██║   ╚██████╔╝██║ ╚████║██║ ╚████║███████╗███████╗██║     ██║  ██║╚██████╔╝██╔╝ ██╗   ██║
        ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚══════╝╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝
-                                                                            author : Gungnir  
+                                                                            author : Gungnir
                                                                             email：502591592@qq.com
         \033[0m'''
     )
@@ -296,6 +299,7 @@ def Parser():
     parser.add_argument("-o", "--out", help="有效代理输出文件位置（绝对路径，并附带自定义文件名）,默认当前文件夹下proxy.txt文件", type=str, dest="outpath")
     parser.add_argument("--page", help="要爬取多少页（默认为1，爬取越多，速度越慢），当然，最终能爬多少取决于你是否为会员。", type=int, dest="page")
     parser.add_argument("--no", help="不监听模式，只爬取代理，并将有效代理记录下来。", action="store_true", dest="nolisten")
+    parser.add_argument("--noscan", help="不进行爬取代理地址，直接用proxy.txt中爬好的地址,一键开启代理池", action="store_true", dest="noscan")
     parser.add_argument("-A", help="调用fofa api接口，比使用cookie得到的ip多得多，但需要你有会员。", action="store_true", dest="IsApi")
     parser.add_argument("-p", "--port", help="监听端口", type=int,dest="port")
     args = parser.parse_args()
@@ -306,7 +310,7 @@ def _init():
     # mode为0，爬取代理并监听
     # mode为1，爬取代理不监听
     # where为是爬取国内或者国外的代理,参数为f，d，df
-    global IsApi, email, key, nodatatime, headerwithcookie, headernocookie, after, before, cookie, mode, port, host, foreign, where, ip_ports, page, outpath
+    global IsApi, email, key, nodatatime, headerwithcookie, headernocookie, after, before, cookie, mode, port, host, foreign, where, ip_ports, page, outpath, noscan
 
     # 初始化
     foreign = False
@@ -316,6 +320,7 @@ def _init():
     host = "127.0.0.1"
     # where = "df"
     page = 1
+    noscan = 0
     ip_ports = []
     outpath = "proxy.txt"
 
@@ -347,6 +352,9 @@ def _init():
         page = options['page']
     if options['outpath']:
         outpath = options['outpath']
+    if options['noscan']:
+        noscan = 1
+
 
     IsApi = options["IsApi"]
     if options["IsApi"]:
@@ -365,18 +373,27 @@ def _init():
             'Cookie': cookie
         }
 def Run():
-    # global host, port
-    if foreign:
-        print("[*]寻找国外可用代理")
-        # where = 'f'
-    else:
-        print("[*]寻找可用代理")
 
-    if IsApi:
-        GetPxByFofaByApi()
+    if noscan == 1:
+        # 读取代理池地址
+        with open('proxy.txt', 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    ip_ports.append(line)
     else:
-        GetPxByFofaByCookie()
-    SaveIpPortToTxt()
+        # global host, port
+        if foreign:
+            print("[*]寻找国外可用代理")
+            # where = 'f'
+        else:
+            print("[*]寻找可用代理")
+
+        if IsApi:
+            GetPxByFofaByApi()
+        else:
+            GetPxByFofaByCookie()
+        SaveIpPortToTxt()
 
 
     if mode == 1:

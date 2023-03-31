@@ -76,6 +76,8 @@ python TunnelProxy.py -a "2021-10-25 10:00:00" -b "2021-10-26" -c You-Cookie
 
 ![image](https://github.com/urdr-gungnir/TunnelProxy/blob/main/img/Snipaste_2021-10-26_22-50-04.png)
 
+如果你想直接开启代理池功能进行监听，不想重复爬取动作，直接使用--noscan参数即可。
+
 
 
 ## 实在看不懂的话，我平时这样用
@@ -100,7 +102,13 @@ python .\TunnelProxy.py -f --no --page 2
 python .\TunnelProxy.py
 ```
 
+4. 读取proxy.txt中的代理地址，直接开启代理池
 
+```
+python .\TunnelProxy.py --noscan
+```
+
+ 
 
 ## 自言自语
 
